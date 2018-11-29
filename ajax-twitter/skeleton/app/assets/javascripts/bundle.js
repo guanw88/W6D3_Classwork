@@ -86,12 +86,47 @@
 /************************************************************************/
 /******/ ({
 
+/***/ "./frontend/api_util.js":
+/*!******************************!*\
+  !*** ./frontend/api_util.js ***!
+  \******************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+
+
+const APIUtil = {
+  followUser: id => {
+    return $.ajax({
+      method: 'POST',
+      url: `/users/${id}/follow`,
+      dataType: "json"
+    });
+  },
+
+  unfollowUser: id => {
+    return $.ajax({
+      method: "DELETE",
+      url: `/users/${id}/follow`,
+      dataType: "json"
+    });
+  }
+};
+
+module.exports = APIUtil;
+
+
+/***/ }),
+
 /***/ "./frontend/follow_toggle.js":
 /*!***********************************!*\
   !*** ./frontend/follow_toggle.js ***!
   \***********************************/
 /*! no static exports found */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
+
+const APIUtil = __webpack_require__(/*! ./api_util */ "./frontend/api_util.js");
+
 
 class FollowToggle {
   constructor($el) {
@@ -106,8 +141,16 @@ class FollowToggle {
     let followText;
     if (this.followState === "unfollowed") {
       followText = "Follow!";
-    } else {
+      this.$el.removeAttr('disabled');
+    } else if (this.followState === "followed") {
       followText = "Unfollow!";
+      this.$el.removeAttr('disabled');
+    } else if (this.followState === "following") {
+      followText = "Following...";
+      this.$el.prop('disabled', 'true');
+    } else {
+      followText = "Unfollowing...";
+      this.$el.prop('disabled', 'true');
     }
     
     this.$el.text(followText);
@@ -115,16 +158,20 @@ class FollowToggle {
   
   handleClick(e) {
     e.preventDefault();
-    $.ajax({
-      method: this.followState === "unfollowed" ? 'POST' : "DELETE",
-      url: `/users/${this.followeeId}/follow`,
-      dataType: "json"
-    });
     if (this.followState === "unfollowed") {
-      this.followState = "followed";
-    } else { 
-      this.followState = "unfollowed";
+      APIUtil.followUser(this.followeeId).then( () => {
+        this.followState = "followed";
+        this.render();
+      });
+      this.followState = "following";
+    } else {
+      APIUtil.unfollowUser(this.followeeId).then( () => {
+        this.followState = "unfollowed";
+        this.render();
+      });
+      this.followState = "unfollowing";
     }
+    
     this.render();
   }
 }
@@ -142,6 +189,7 @@ module.exports = FollowToggle;
 /***/ (function(module, exports, __webpack_require__) {
 
 const FollowToggle = __webpack_require__(/*! ./follow_toggle */ "./frontend/follow_toggle.js");
+const APIUtil = __webpack_require__(/*! ./api_util */ "./frontend/api_util.js");
 
 $( () => {
   const $button = $(".follow-toggle");
