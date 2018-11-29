@@ -110,6 +110,17 @@ const APIUtil = {
       url: `/users/${id}/follow`,
       dataType: "json"
     });
+  },
+  
+  searchUsers: (queryVal, success) => {
+    return $.ajax({
+      method: "GET",
+      url: '/users/search',
+      data: {
+        query: queryVal
+      },
+      dataType: "json"
+    });
   }
 };
 
@@ -158,6 +169,7 @@ class FollowToggle {
   
   handleClick(e) {
     e.preventDefault();
+    
     if (this.followState === "unfollowed") {
       APIUtil.followUser(this.followeeId).then( () => {
         this.followState = "followed";
@@ -190,11 +202,47 @@ module.exports = FollowToggle;
 
 const FollowToggle = __webpack_require__(/*! ./follow_toggle */ "./frontend/follow_toggle.js");
 const APIUtil = __webpack_require__(/*! ./api_util */ "./frontend/api_util.js");
+const UsersSearch = __webpack_require__(/*! ./users_search */ "./frontend/users_search.js");
 
 $( () => {
   const $button = $(".follow-toggle");
   const followToggle = new FollowToggle($button);
+  const $search = $(".users-search");
+  const usersSearch = new UsersSearch($search);
 });
+
+/***/ }),
+
+/***/ "./frontend/users_search.js":
+/*!**********************************!*\
+  !*** ./frontend/users_search.js ***!
+  \**********************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+const APIUtil = __webpack_require__(/*! ./api_util */ "./frontend/api_util.js");
+
+
+class UsersSearch {
+  constructor($el){
+    this.$el = $el;
+    this.$input = $el.children().first();
+    this.$ul = $el.children().last();
+    this.$el.on('keypress', this.handleInput.bind(this));
+  }
+  
+  handleInput() {
+    let inputString = this.$input.val();
+    console.log(inputString);
+    APIUtil.searchUsers(inputString, this.render);
+  }
+  
+  render() {
+    console.log("rendered");
+  }
+}
+
+module.exports = UsersSearch;
 
 /***/ })
 

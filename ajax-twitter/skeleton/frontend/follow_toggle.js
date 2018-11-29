@@ -31,6 +31,7 @@ class FollowToggle {
   
   handleClick(e) {
     e.preventDefault();
+    
     if (this.followState === "unfollowed") {
       APIUtil.followUser(this.followeeId).then( () => {
         this.followState = "followed";
